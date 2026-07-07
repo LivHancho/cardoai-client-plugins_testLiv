@@ -9,6 +9,11 @@
       "name": "prism-analyst",
       "source": "./plugins/prism-analyst",
       "description": "Multi-agent verified retrieval for Prism deals/transactions. Bundles the prism-analyst skill and connects to the Prism MCP server."
+    },
+    {
+      "name": "abf-analytics",
+      "source": "./plugins/abf-analytics",
+      "description": "ABF CardoAI platform plugin — read-only analytics gateway for ABF transaction analysis."
     }
   ]
 }

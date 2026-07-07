@@ -1,0 +1,38 @@
+{
+  "_schema_version": "2",
+  "_doc": "Maps Cardo platform asset_class string (from securitizations://asset-classes and list_transactions) to {main, sub} slugs under knowledge/{main}/{sub}/. Source of truth for routing. Update when backend label changes.",
+  "_resolution_order": ["_global/conventions", "_global/classification", "{main}/_index", "{main}/common/kpis", "{main}/{sub}/kpis", "{main}/{sub}/enums", "cre/_addendum/data-model (CRE only)"],
+  "_unresolved_policy": "If asset_class not in map, skill loads only _global.md silently. Do not surface tier or hierarchy details to analyst.",
+  "_display_rules": "The mapping KEY (e.g., 'Auto Loans', 'CRE Hospitality') is the analyst-facing label — it matches the MCP asset_class string. Internal {main, sub} value pair is routing metadata, never user-facing.",
+  "mappings": {
+    "Auto Loans": {"main": "consumer", "sub": "auto-loans", "synonyms": ["auto", "vehicle loans", "car loans", "auto finance"]},
+    "Credit Cards": {"main": "consumer", "sub": "credit-cards", "synonyms": ["credit card", "revolving credit", "master trust", "cc abs"]},
+    "Unsecured Personal Loans": {"main": "consumer", "sub": "unsecured-personal-loans", "synonyms": ["personal loans", "unsecured loans", "consumer loans", "pl"]},
+    "Point-of-Sale Loans": {"main": "consumer", "sub": "point-of-sale-loans", "synonyms": ["pos loans", "point of sale", "bnpl installment", "checkout loans"]},
+    "Home Improvement": {"main": "consumer", "sub": "home-improvement", "synonyms": ["home improvement loans", "hi loans", "hvac loans", "solar loans home"]},
+    "Device Payment Plan": {"main": "consumer", "sub": "device-payment-plan", "synonyms": ["device payment", "dpp", "handset financing", "phone installment"]},
+    "Student Loans": {"main": "consumer", "sub": "student-loans", "synonyms": ["student", "student loan abs", "education loans", "ffelp", "private student"]},
+    "Buy Now Pay Later": {"main": "consumer", "sub": "buy-now-pay-later", "synonyms": ["bnpl", "buy now pay later", "pay in 4", "affirm", "klarna", "afterpay"], "description_key": "Buy-Now Pay-Later"},
+
+    "Corporate Loans": {"main": "commercial", "sub": "corporate-loans", "synonyms": ["corporate", "corp loans", "corporate debt", "term loans corporate"]},
+    "Trade Finance": {"main": "commercial", "sub": "trade-finance", "synonyms": ["trade finance", "invoice finance", "factoring", "supply chain finance", "scf"]},
+    "Inventory Finance": {"main": "commercial", "sub": "inventory-finance", "synonyms": ["inventory", "floorplan", "warehouse finance", "borrowing base"]},
+    "Leasing Finance": {"main": "commercial", "sub": "leasing-finance", "synonyms": ["leasing", "equipment lease", "fleet lease", "operating lease"]},
+    "Rail Cars & Containers": {"main": "commercial", "sub": "rail-cars-and-containers", "synonyms": ["rail cars", "railcar", "containers", "intermodal", "freight cars"]},
+    "Small Business Loans": {"main": "commercial", "sub": "small-business-loans", "synonyms": ["sbl", "smb loans", "small business", "sba loans", "7a loans"]},
+    "Equipment Finance": {"main": "commercial", "sub": "equipment-finance", "synonyms": ["equipment", "equipment loan", "equipment leasing", "capex finance"]},
+    "Revenue Based Finance": {"main": "commercial", "sub": "revenue-based-finance", "synonyms": ["rbf", "revenue based", "revenue share", "revenue finance", "saas finance"], "description_key": "Revenue-Based Finance"},
+    "Ecommerce Finance": {"main": "commercial", "sub": "ecommerce-finance", "synonyms": ["ecommerce", "e-commerce", "amazon lending", "shopify capital", "marketplace lending"], "description_key": "E-commerce Finance"},
+
+    "CRE Condominium": {"main": "cre", "sub": "condominium", "synonyms": ["cre condo", "condominium", "condo construction", "residential condo"], "description_key": "Condos"},
+    "CRE Hospitality": {"main": "cre", "sub": "hospitality", "synonyms": ["hospitality", "hotel", "hotel cre", "resort loans"], "description_key": "Hospitality"},
+    "CRE Industrial": {"main": "cre", "sub": "industrial", "synonyms": ["industrial", "warehouse", "logistics", "distribution center"], "description_key": "Industrial"},
+    "CRE Office": {"main": "cre", "sub": "office", "synonyms": ["office", "office cre", "office building", "office park"], "description_key": "Office"},
+    "CRE Residential": {"main": "cre", "sub": "residential", "synonyms": ["cre residential", "multifamily", "apartments", "residential cre"], "description_key": "Residential Housing"},
+    "CRE Retail": {"main": "cre", "sub": "retail", "synonyms": ["retail", "retail cre", "shopping center", "strip mall"], "description_key": "Retail"},
+    "CRE Self-Storage": {"main": "cre", "sub": "self-storage", "synonyms": ["self storage", "self-storage", "storage units", "mini storage"], "description_key": "Self-Storage"},
+    "CRE Data Center": {"main": "cre", "sub": "data-center", "synonyms": ["data center", "cre data center", "colocation", "powered shell"], "description_key": "Data Centers"},
+
+    "Cell Tower": {"main": "energy-infrastructure", "sub": "cell-tower", "synonyms": ["cell tower", "digital infrastructure", "tower", "telecom tower", "mobile tower"], "description_key": "Digital Infrastructure (Cell Tower)"}
+  }
+}

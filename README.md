@@ -5,8 +5,13 @@ Plugins from [CardoAI](https://cardoai.com) for asking Claude about your data.
 | Plugin | What it does |
 |---|---|
 | [`prism-analyst`](plugins/prism-analyst/README.md) | Ask questions about your Prism deals in plain language — verified answers with confidence scores and source citations. |
+| [`abf-analytics`](plugins/abf-analytics/README.md) | Ask questions about your ABF transactions — stratification, delinquency/loss/prepayment analysis, and full portfolio reports. |
 
-## Before you start
+Each plugin connects to a different CardoAI data source and has its own setup below — jump to the one you need.
+
+## prism-analyst
+
+### Before you start
 
 You need your **Prism endpoint URL**. CardoAI sends it to you directly — it's specific to your account, so it's not published here. It looks like `https://prism.<your-tenant>.cardoaiapps.com/mcp/`.
 
@@ -14,10 +19,10 @@ Wherever setup asks for an **OAuth client ID**, enter `prism-mcp` — it's the o
 
 There are two ways to install. Pick the app you use:
 
-- **[Claude Code](#install-in-claude-code)** — the terminal, where you type commands like `/plugin`.
-- **[Claude app](#install-in-the-claude-app-claudeai)** — claude.ai in the browser, or the desktop chat app (no terminal).
+- **[Claude Code](#install-prism-analyst-in-claude-code)** — the terminal, where you type commands like `/plugin`.
+- **[Claude app](#install-prism-analyst-in-the-claude-app-claudeai)** — claude.ai in the browser, or the desktop chat app (no terminal).
 
-## Install in Claude Code
+### Install prism-analyst in Claude Code
 
 **Step 1 — inside Claude Code**, add the CardoAI plugin catalog, then install the plugin:
 
@@ -50,7 +55,7 @@ Your browser opens to sign in and authorize — one time per machine.
 
 Then just ask, e.g. *"What's the NAV for `<deal name>` this period, compared to a year ago?"*
 
-## Install in the Claude app (claude.ai)
+### Install prism-analyst in the Claude app (claude.ai)
 
 No terminal needed. You add two things: the **prism-analyst plugin** (from the CardoAI marketplace) and the **Prism custom connector** (the link to your data).
 
@@ -74,11 +79,87 @@ Click **Add**, then **Connect** and sign in.
 
 **3. Ask.** In a new chat, ask e.g. *"What's the NAV for `<deal name>` this period?"* — type **/** to see the skills your plugins added.
 
-## Troubleshooting
+### prism-analyst troubleshooting
 
 - **Skill doesn't seem to activate** — mention a deal name, or ask explicitly: "Use prism-analyst to look up...". Claude Code: confirm it's installed with `/plugin list`. Claude app: check **Customize → Plugins** shows prism-analyst as installed.
 - **Connection / auth errors** — first confirm the OAuth client ID is exactly `prism-mcp` (the most common mistake). Claude Code: run `/mcp`; if the connection shows disconnected or unauthorized, re-run the `claude mcp add` command above and re-authorize in the browser. Claude app: Settings → Connectors → open the Prism connector, check the Client ID under Advanced settings, then click **Connect** again.
 - **Plugin seems outdated** — Claude Code: run `/plugin marketplace update`, then `/plugin install prism-analyst@cardoai-client-plugins` again. Claude app: **Customize → Plugins**, refresh the CardoAI marketplace and reinstall.
+
+## abf-analytics
+
+### Before you start
+
+You need your **ABF tenant name**. CardoAI sends it to you directly. Your MCP endpoint is built from it: `https://abf-backend.<your-tenant>.cardoaiapps.com/mcp`.
+
+Wherever setup asks for an **OAuth client ID**, enter `abf-mcp` — the ABF backend doesn't support Dynamic Client Registration, so this value is required, the same for every client.
+
+There are two ways to install. Pick the app you use:
+
+- **[Claude Code](#install-abf-analytics-in-claude-code)** — the terminal, where you type commands like `/plugin`.
+- **[Claude app](#install-abf-analytics-in-the-claude-app-claudeai)** — claude.ai in the browser, or the desktop chat app (no terminal).
+
+### Install abf-analytics in Claude Code
+
+**Step 1 — inside Claude Code**, add the CardoAI plugin catalog (skip if you already added it for another CardoAI plugin), then install the plugin:
+
+```
+/plugin marketplace add CardoAI/cardoai-client-plugins
+/plugin install abf-analytics@cardoai-client-plugins
+```
+
+**Step 2 — in your terminal**, connect your ABF data:
+
+```
+claude mcp add --transport http --scope user --client-id abf-mcp abf https://abf-backend.<your-tenant>.cardoaiapps.com/mcp
+```
+
+| Part | What it is |
+|---|---|
+| `--client-id abf-mcp` | The OAuth client ID. **Required** — the ABF backend only accepts `abf-mcp`. |
+| `abf` | The local name the connection is saved under. Any name works — this is not the client ID. |
+| `--scope user` | Makes the connection work in every folder, not just where you ran the command. |
+| the URL | Your ABF tenant endpoint — paste yours in place of the example. |
+
+Your browser opens to sign in and authorize — one time per machine.
+
+**Step 3 — verify**, back inside Claude Code:
+
+```
+/plugin list        # abf-analytics is installed
+/mcp                # abf is connected
+```
+
+Then just ask, e.g. *"What transactions do I have, and what asset classes are they?"*
+
+### Install abf-analytics in the Claude app (claude.ai)
+
+No terminal needed. You add two things: the **abf-analytics plugin** (from the CardoAI marketplace) and the **ABF custom connector** (the link to your data).
+
+> Requires a paid plan (Pro, Max, Team, or Enterprise). On Team/Enterprise, only an organization **Owner** can add the connector, and your admin may restrict which plugins you can install — ask your admin if you don't see an option.
+
+**1. Install the plugin.**
+
+- Open **Customize** in the left sidebar, then go to the **Plugins** tab.
+- Under **Personal plugins**, click **＋** → **Add marketplace** → **Add from a repository**.
+- Enter this repository: `CardoAI/cardoai-client-plugins` (the full GitHub URL works too)
+- Browse the new CardoAI marketplace and click **Install** on **abf-analytics**.
+
+**2. Add the connector.** ABF is a **custom connector** — you won't find it in Claude's built-in connector directory, so don't search for it there. Go to Settings → **Connectors**, scroll past the pre-built connectors, and click **Add custom connector**.
+
+- **Name:** `abf` (any name works — this is just the label, not the client ID)
+- **URL:** your ABF tenant endpoint from CardoAI
+- Open **Advanced settings** and set **OAuth Client ID** to `abf-mcp`. **This is required — the connection fails without it.** Leave the client secret blank unless CardoAI gave you one.
+
+Click **Add**, then **Connect** and sign in.
+*(Team/Enterprise: an Owner adds it under Organization settings → Connectors → Add → Custom → Web, with the same values — including **OAuth Client ID** `abf-mcp` under Advanced settings; each member then clicks **Connect**.)*
+
+**3. Ask.** In a new chat, ask e.g. *"What transactions do I have?"* — type **/** to see the skills your plugins added.
+
+### abf-analytics troubleshooting
+
+- **Skill doesn't seem to activate** — mention a transaction name, or ask explicitly: "Use abf-analytics to look up...". Claude Code: confirm it's installed with `/plugin list`. Claude app: check **Customize → Plugins** shows abf-analytics as installed.
+- **Connection / auth errors** — first confirm the OAuth client ID is exactly `abf-mcp` (the most common mistake). Claude Code: run `/mcp`; if the connection shows disconnected or unauthorized, re-run the `claude mcp add` command above and re-authorize in the browser. Claude app: Settings → Connectors → open the ABF connector, check the Client ID under Advanced settings, then click **Connect** again.
+- **Plugin seems outdated** — Claude Code: run `/plugin marketplace update`, then `/plugin install abf-analytics@cardoai-client-plugins` again. Claude app: **Customize → Plugins**, refresh the CardoAI marketplace and reinstall.
 
 ## Support
 

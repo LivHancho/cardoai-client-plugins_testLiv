@@ -1,0 +1,10 @@
+{
+  "name": "abf-analytics",
+  "version": "3.0.3",
+  "description": "ABF CardoAI platform plugin \u2014 read-only analytics gateway for ABF transaction analysis",
+  "author": {
+    "name": "CardoAI",
+    "email": "dev@cardoai.com"
+  },
+  "keywords": ["abf", "analytics", "stratification", "mcp"]
+}
