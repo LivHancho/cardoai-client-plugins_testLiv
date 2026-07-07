@@ -1,0 +1,10 @@
+{
+  "name": "prism-analyst",
+  "version": "2.1.0",
+  "description": "Multi-agent verified retrieval for Prism deals/transactions. Bundles the prism-analyst skill and connects to the Prism MCP server.",
+  "author": {
+    "name": "Marco M.",
+    "email": "euron.metaliaj@cardoai.com"
+  },
+  "keywords": ["prism", "abf", "deals", "analytics", "mcp"]
+}

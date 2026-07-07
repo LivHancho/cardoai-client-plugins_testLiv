@@ -1,0 +1,14 @@
+{
+  "name": "cardoai-client-plugins",
+  "owner": {
+    "name": "CardoAI",
+    "email": "dev@cardoai.com"
+  },
+  "plugins": [
+    {
+      "name": "prism-analyst",
+      "source": "./plugins/prism-analyst",
+      "description": "Multi-agent verified retrieval for Prism deals/transactions. Bundles the prism-analyst skill and connects to the Prism MCP server."
+    }
+  ]
+}
