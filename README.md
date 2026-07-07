@@ -52,11 +52,18 @@ Then just ask, e.g. *"What's the NAV for `<deal name>` this period, compared to 
 
 ## Install in the Claude app (claude.ai)
 
-No terminal needed. You add two things in **Settings**: the **Prism custom connector** (the link to your data) and the **prism-analyst skill** (the analysis instructions).
+No terminal needed. You add two things: the **prism-analyst plugin** (from the CardoAI marketplace) and the **Prism custom connector** (the link to your data).
 
-> Requires a paid plan (Pro, Max, Team, or Enterprise). On Team/Enterprise, only an organization **Owner** can add the connector — ask your admin if you don't see the option. Answers in the app are sourced and confidence-scored, but the full multi-agent cross-checking runs only in Claude Code.
+> Requires a paid plan (Pro, Max, Team, or Enterprise). On Team/Enterprise, only an organization **Owner** can add the connector, and your admin may restrict which plugins you can install — ask your admin if you don't see an option. Answers in the app are sourced and confidence-scored, but the full multi-agent cross-checking runs only in Claude Code.
 
-**1. Add the connector.** Prism is a **custom connector** — you won't find it in Claude's built-in connector directory, so don't search for it there. Go to Settings → **Connectors**, scroll past the pre-built connectors, and click **Add custom connector**.
+**1. Install the plugin.**
+
+- Open **Customize** in the left sidebar, then go to the **Plugins** tab.
+- Under **Personal plugins**, click **＋** → **Add marketplace** → **Add from a repository**.
+- Enter this repository: `CardoAI/cardoai-client-plugins` (the full GitHub URL works too)
+- Browse the new CardoAI marketplace and click **Install** on **prism-analyst**.
+
+**2. Add the connector.** Prism is a **custom connector** — you won't find it in Claude's built-in connector directory, so don't search for it there. Go to Settings → **Connectors**, scroll past the pre-built connectors, and click **Add custom connector**.
 
 - **Name:** `prism` (any name works — this is just the label, not the client ID)
 - **URL:** your Prism endpoint from CardoAI
@@ -65,20 +72,13 @@ No terminal needed. You add two things in **Settings**: the **Prism custom conne
 Click **Add**, then **Connect** and sign in.
 *(Team/Enterprise: an Owner adds it under Organization settings → Connectors → Add → Custom → Web, with the same values — including **OAuth Client ID** `prism-mcp` under Advanced settings; each member then clicks **Connect**.)*
 
-**2. Upload the skill.**
-
-- In Settings → **Capabilities**, turn on **Code execution** and **File creation** — skills don't run without them.
-- Download this repository: on the GitHub page, green **Code** button → **Download ZIP**, then unzip it.
-- Zip the folder `plugins/prism-analyst/skills/prism-analyst` — the zip must contain that folder itself (with `SKILL.md` inside), not loose files.
-- Go to Settings → **Capabilities → Skills** → **Upload skill** and pick your zip. *(On some plans this lives under Settings → Features.)*
-
-**3. Ask.** In a new chat, ask e.g. *"What's the NAV for `<deal name>` this period?"*
+**3. Ask.** In a new chat, ask e.g. *"What's the NAV for `<deal name>` this period?"* — type **/** to see the skills your plugins added.
 
 ## Troubleshooting
 
-- **Skill doesn't seem to activate** — mention a deal name, or ask explicitly: "Use prism-analyst to look up...". In Claude Code, confirm it's installed with `/plugin list`.
+- **Skill doesn't seem to activate** — mention a deal name, or ask explicitly: "Use prism-analyst to look up...". Claude Code: confirm it's installed with `/plugin list`. Claude app: check **Customize → Plugins** shows prism-analyst as installed.
 - **Connection / auth errors** — first confirm the OAuth client ID is exactly `prism-mcp` (the most common mistake). Claude Code: run `/mcp`; if the connection shows disconnected or unauthorized, re-run the `claude mcp add` command above and re-authorize in the browser. Claude app: Settings → Connectors → open the Prism connector, check the Client ID under Advanced settings, then click **Connect** again.
-- **Plugin seems outdated** — run `/plugin marketplace update`, then `/plugin install prism-analyst@cardoai-client-plugins` again.
+- **Plugin seems outdated** — Claude Code: run `/plugin marketplace update`, then `/plugin install prism-analyst@cardoai-client-plugins` again. Claude app: **Customize → Plugins**, refresh the CardoAI marketplace and reinstall.
 
 ## Support
 
