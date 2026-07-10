@@ -208,7 +208,7 @@ Each domain agent is an Opus-level orchestrator that:
 3. Spawn gap-filler sub-agents (Haiku) for missing data
 4. Run chart/image corroboration for any [CHART/IMAGE] data
 5. Compute all period-over-period deltas and flags
-6. Apply confidence scoring (GREEN/AMBER/RED) to every metric
+6. Score every metric's confidence by calling `score_answer(question, value, chunk_uuids)`; record the band as a circle (🟢 high / 🟡 medium / 🔴 low)
 7. Detect narrative vs. numbers inconsistencies
 8. Generate the final structured response
 
@@ -224,7 +224,7 @@ The Reporting Agent produces the final answer using the standard format:
 - Period Comparison table (with flags)
 - Confidence Assessment table (with sources)
 - Methodology
-- Caveats (all RED and ! items)
+- Caveats (all `low` and ! items)
 
 ---
 
@@ -245,4 +245,4 @@ Every domain agent must follow this protocol when receiving sub-agent results:
    PERF-01 NAV: Sub-A=$1,209m (TABLE, AR p.62) | Sub-C=$1,200m (TEXT, AR p.12)
    SELECTED: Sub-A ($1,209m) - TABLE source from financial statements, more precise
    ```
-6. **Flag unresolved conflicts** as RED in the state
+6. **Flag unresolved conflicts** in the state - an unresolved value has no cleanly-grounded source, so it will score `low`

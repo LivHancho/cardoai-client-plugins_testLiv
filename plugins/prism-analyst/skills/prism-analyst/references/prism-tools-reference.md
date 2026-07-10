@@ -125,8 +125,8 @@ CRITICAL: Tag EVERY data point with its source type:
 - [KPI_EXTRACTED] = from Prism KPI extraction layer
 
 Return: exact data found with source type tags FOR EACH PERIOD,
-source (document/page/section), chunk_uuid (when the source is a figure), discrepancies noticed,
-self-assessed confidence (0-100%).
+source (document/page/section), and the `chunk_uuid` for every data point (needed later to score the value with `score_answer`), plus any discrepancies noticed.
+Do NOT self-assess a confidence score - confidence is set centrally by `score_answer` in the reporting step, and nowhere else.
 
 FORMAT YOUR RESULTS AS A COMPARISON:
 | Metric | T ({target_period}) | T-1Y ({year_ago_period}) | Source |
@@ -172,7 +172,8 @@ CRITICAL: Tag EVERY data point with its source type:
 - [KPI_EXTRACTED] = from Prism KPI extraction layer
 
 Return: exact data found with source type tags, source (document/page/section),
-chunk_uuid (when the source is a figure), discrepancies noticed, self-assessed confidence (0-100%).
+and the `chunk_uuid` for every data point (needed later to score the value with `score_answer`), plus any discrepancies noticed.
+Do NOT self-assess a confidence score - confidence is set centrally by `score_answer` in the reporting step, and nowhere else.
 ```
 
 ### Chart/Image Corroboration Agent (Phase 2.5)
@@ -223,10 +224,11 @@ Perform these checks:
 1. CROSS-VALIDATE: Do agents agree on the key data points? Flag discrepancies.
 2. SOURCE HIERARCHY: Rank sources (Annual Reports > Presentations > Factsheets > OCR)
 3. RECONCILE: If agents disagree, determine WHY and select the most reliable value.
-4. CHART ADJUDICATION: For each [CHART/IMAGE] data point:
-   - CORROBORATED -> use text/table/render_figure-confirmed value, score max AMBER (50-69%)
-   - PARTIALLY_CORROBORATED -> use text value, flag discrepancy, score RED (30-49%)
-   - UNCORROBORATED -> keep chart value, score RED (0-49%), cite page for manual check
+4. CHART ADJUDICATION: For each [CHART/IMAGE] data point, use the corroboration result to settle on the VALUE only:
+   - CORROBORATED -> use the text/table/render_figure-confirmed value; keep the corroborating chunk_uuid so score_answer can verify it
+   - PARTIALLY_CORROBORATED -> use the text value and flag the discrepancy
+   - UNCORROBORATED -> keep the chart value and cite the page for manual check
+   Do NOT assign any confidence here - every value's confidence is set only by score_answer in step 6.
 5. PERIOD-OVER-PERIOD COMPARISON: For every metric with data at both T and T-1Y:
    - Compute absolute delta ($m, pp, or x multiple)
    - Compute percentage change (except for ratios - use delta)
@@ -235,12 +237,8 @@ Perform these checks:
    - Mark metrics with no prior data as "-"
    - Produce a Period Comparison table:
      | Metric | Current (T) | Prior (T-1Y) | Delta | % Change | Flag |
-5. COLOR-CODE confidence for each data point:
-   - 🟢 GREEN (70-100%): text/table sources, reliable
-   - 🟡 AMBER (50-69%): corroborated chart data, or partial text agreement
-   - 🔴 RED (0-49%): uncorroborated chart/image data, or significant uncertainty
-6. NEVER assign GREEN to [CHART/IMAGE] data, even if corroborated.
-7. FLAG all RED data points with exact PDF page numbers for manual verification.
+6. SCORE CONFIDENCE - this is the ONLY way confidence is set: for each data point call `score_answer(question="<the metric as a question>", answer="<the value statement>", chunk_uuids=[<its source chunk_uuid(s)>])` and record the returned band as a circle - 🟢 `high` | 🟡 `medium` | 🔴 `low`. Do NOT derive confidence from source type, corroboration status, or a percentage - a verbatim, correctly-read chart value can score 🟢 `high`.
+7. FLAG all `low`-scoring data points with exact PDF page numbers for manual verification.
 
 IMPORTANT: Produce TWO tables:
 
@@ -251,18 +249,18 @@ TABLE 1 - PERIOD COMPARISON (always include when comparison data exists):
 
 Flag symbols: >>> positive >15% | <<< negative >15% | ~ stable | ! concern | - no data
 
-TABLE 2 - CONFIDENCE & SOURCES (separate columns for confidence and source detail):
-| Data Point | Confidence | Source Type | Document | Page | Corroboration | Rationale |
-| NAV ($m) | 🟢 95% | TABLE | 2025 AR | p.62 | n/a | Audited balance sheet |
-| FX impact | 🟡 60% | CHART | 2025 AR | p.26 | CORROBORATED | Confirmed in narrative |
-| Net Cash Flow | 🔴 35% | CHART | Apr 2026 Pres | p.19 | UNCORROBORATED | Bar label uncertain |
+TABLE 2 - CONFIDENCE & SOURCES (the score_answer band per metric, plus source traceability):
+| Data Point | Confidence | Source Type | Document | Page |
+| NAV ($m) | 🟢 high | TABLE | 2025 AR | p.62 |
+| FX impact | 🟡 medium | CHART | 2025 AR | p.26 |
+| Net Cash Flow | 🔴 low | CHART | Apr 2026 Pres | p.19 |
 
 Column definitions:
-- Confidence: 🟢 (70%+) | 🟡 (50-69%) | 🔴 (< 50%)
-- Source Type: TABLE | TEXT | CHART | KPI
+- Confidence: the score_answer band - 🟢 `high` | 🟡 `medium` | 🔴 `low`. No percentages; set only by score_answer, never by source type or corroboration status.
+- Source Type: TABLE | TEXT | CHART | KPI (provenance only - does NOT set confidence)
 - Document: short form (e.g., "2025 AR", "Apr 2026 Pres")
 - Page: exact page reference
 
 Return: final answer with Period Comparison table, Confidence & Sources table,
-methodology notes, and caveats listing all RED and ! flagged items.
+methodology notes, and caveats listing all `low`-scoring and ! flagged items.
 ```

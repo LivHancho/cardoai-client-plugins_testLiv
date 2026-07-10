@@ -90,7 +90,7 @@ Each domain agent's prompt must include:
 - Instructions to spawn 2-3 Haiku sub-agents internally, cross-validate, and return structured findings
 
 Each domain agent must return:
-- Verified metrics table (metric, T value, T-1Y value, source, confidence)
+- Verified metrics table (metric, T value, T-1Y value, source, `chunk_uuid`) - record the source `chunk_uuid` per metric; it is needed to score the metric with `score_answer` in Step 5
 - Sub-agent decision log (which sub-agent was selected per metric and why)
 - Gaps (metrics it couldn't find)
 - Red flags (anomalies detected)
@@ -139,12 +139,12 @@ Spawn ONE Reporting Agent with `model: "opus"`. Its prompt must include:
   2. Run chart/image corroboration (spawn corroboration Haiku sub-agents): for each flagged `[CHART/IMAGE]` data point, call `render_figure(chunk_uuid=<id>)` on its `chunk_uuid` (from the originating `search_deal_documents` result header) to check the actual chart pixels, in addition to text/table corroboration
   3. Audit GP narrative against verified numbers
   4. Compute all period-over-period deltas and flags
-  5. Apply confidence scoring (GREEN/AMBER/RED) to every metric
+  5. Score every metric's confidence by calling `score_answer` (it checks each value is grounded in its cited chunk): for each metric call `score_answer(question="<the metric as a question>", answer="<the value statement, e.g. 'The cost basis is $242.5M.'>", chunk_uuids=[<the metric's source chunk_uuid(s)>])` and record the returned band, shown as a circle: 🟢 `high` / 🟡 `medium` / 🔴 `low`
   6. Produce the final structured response
 
-### Step 5.5 - User Validation Gate (MANDATORY when any RED data exists)
+### Step 5.5 - User Validation Gate (MANDATORY when any metric scores `low`)
 
-Before generating any final report, the parent MUST check if any data point scored 🔴 RED (< 50%) or has an `!` directional concern flag. If so, present ALL low-confidence items to the user for confirmation in this EXACT format:
+Before generating any final report, the parent MUST check if any metric's `score_answer` band is `low` or has an `!` directional concern flag. If so, present ALL such items to the user for confirmation in this EXACT format:
 
 ```
 ## Data Validation Required
@@ -156,9 +156,9 @@ For each item: confirm (Y), correct the value, or skip (S).
 
 | # | Metric | Extracted Value | Confidence | Source | Issue |
 |---|--------|----------------|------------|--------|-------|
-| 1 | FX impact | +$34m | 🔴 40% | `[CHART/IMAGE]` 2025 AR, p.26 | OCR from waterfall chart, sign uncertain |
-| 2 | Total value change | -$10m | 🔴 45% | `[CHART/IMAGE]` 2025 AR, p.26 | Does not reconcile to 5% NAV TR without adjustments |
-| 3 | Net Cash Flow | ($117m) | 🔴 35% | `[CHART/IMAGE]` Apr 2026 Pres, p.19 | Bar label attribution uncertain |
+| 1 | FX impact | +$34m | 🔴 low | `[CHART/IMAGE]` 2025 AR, p.26 | value not clearly supported by its cited chunk |
+| 2 | Total value change | -$10m | 🔴 low | `[CHART/IMAGE]` 2025 AR, p.26 | does not reconcile; not grounded in a chunk |
+| 3 | Net Cash Flow | ($117m) | 🔴 low | `[CHART/IMAGE]` Apr 2026 Pres, p.19 | bar label attribution uncertain |
 
 **For each row, reply with:**
 - `1: Y` to confirm the value is correct
@@ -171,12 +171,12 @@ Example response: `1: Y, 2: -$15m, 3: S`
 
 **Rules for this gate:**
 - NEVER generate the final report until the user responds to this validation
-- NEVER skip this step when RED items exist - it is mandatory
-- Include ALL data points scoring < 50% AND all `!` flagged items
+- NEVER skip this step when `low` items exist - it is mandatory
+- Include ALL metrics scoring `low` AND all `!` flagged items
 - Group items logically (e.g., all waterfall chart items together)
 - Show enough context (source, page, issue) for the user to make a decision
 - If the user corrects a value, use the corrected value in the final report. There is no tool to persist the correction back to Prism for future queries - the correction applies to this session's report only.
-- If the user confirms, upgrade the confidence to 🟡 65% (user-validated chart data)
+- If the user confirms, treat the metric as `medium` (user-validated)
 - If the user skips, exclude the data point from the report and note it as "excluded by user"
 - After user responds, proceed to Step 6
 
@@ -193,26 +193,25 @@ Flag symbols: `>>>` significant positive (>15%) | `<<<` significant negative (>1
 
 **Answer** - clear, direct response with analysis and interpretation
 
-**Confidence & Sources** - table with separate columns for confidence scoring and source traceability:
+**Confidence & Sources** - one `score_answer` groundedness band per metric, plus source traceability:
 
-| Data Point | Confidence | Source Type | Document | Page | Corroboration | Rationale |
-|------------|------------|-------------|----------|------|---------------|-----------|
-| NAV ($m) | 🟢 95% | `TABLE` | 2025 Annual Report | p.62 | n/a | Audited balance sheet |
-| FX impact | 🟡 60% | `CHART` | 2025 Annual Report | p.26 | CORROBORATED | Chart confirmed in narrative |
-| Net Cash Flow | 🔴 35% | `CHART` | Apr 2026 Pres | p.19 | UNCORROBORATED | Bar label uncertain |
+| Data Point | Confidence | Source Type | Document | Page |
+|------------|------------|-------------|----------|------|
+| NAV ($m) | 🟢 high | `TABLE` | 2025 Annual Report | p.62 |
+| FX impact | 🟡 medium | `CHART` | 2025 Annual Report | p.26 |
+| Net Cash Flow | 🔴 low | `CHART` | Apr 2026 Pres | p.19 |
 
 Column definitions:
-- **Confidence**: 🟢 Reliable (70%+) | 🟡 Caution (50-69%) | 🔴 Verify manually (< 50%)
-- **Source Type**: `TABLE` | `TEXT` | `CHART` | `KPI`
+- **Confidence**: the `score_answer` band, shown as a circle - 🟢 `high` (value grounded in its chunk) | 🟡 `medium` (grounded but on a scanned/complex page) | 🔴 `low` (value not supported by its cited chunk). No percentages - the score is band-only. A verbatim, correctly-read chart value can score 🟢 `high`.
+- **Source Type**: `TABLE` | `TEXT` | `CHART` | `KPI` (provenance only - it does NOT set the confidence)
 - **Document**: Document name (use short form: "2025 AR", "Apr 2026 Pres", "Dec 2024 FS")
 - **Page**: Exact page for traceability
-- **Corroboration**: n/a | CORROBORATED | PARTIALLY | UNCORROBORATED
 
-**Overall Confidence: XX%**
+**Overall Confidence: 🟢/🟡/🔴 `<lowest per-metric band>`** - the report is only as trustworthy as its weakest-grounded metric. This line IS this answer's groundedness score (it already reflects `score_answer`) and satisfies the deal playbook's "end with `score:`" directive - so do NOT append a separate `score: high/medium/low` line at the end of the report.
 
 **Methodology** - which domain agents contributed, how sub-agent conflicts were resolved, chart corroboration results
 
-**Caveats** - all 🔴 RED and `!` flagged items with page references
+**Caveats** - all `low`-scoring and `!` flagged items with page references
 
 ## Scoping Rules
 
@@ -241,21 +240,20 @@ Every domain agent follows this when its sub-agents return conflicting data:
    c. Annual Report > Presentation > Factsheet
    d. If still tied, use value confirmed by more sub-agents
 5. **Log** the decision with rationale
-6. **Flag** unresolved conflicts as RED
+6. **Flag** unresolved conflicts in the state - an unresolved value has no cleanly-grounded source, so it will score `low`
 
 ## Chart/Image Data Rules
 
-- NEVER assign GREEN to any `[CHART/IMAGE]` data point
-- Chart data starts at AMBER (if corroborated by text) or RED (if not)
+- Chart values must be verified before use: render the figure (`render_figure`) and/or corroborate against text/table before trusting a `[CHART/IMAGE]` value
 - Detection markers: `picture intentionally omitted`, `Start/End of picture text`
-- Corroboration is handled by the Reporting Agent in Wave 3
+- Confidence for every value (charts included) is set by `score_answer` - a verbatim, correctly-read chart value can score `high`
 
 ## General Rules
 
 - NEVER skip the Working State file - it's the backbone of cross-agent communication
 - NEVER contradict admin-approved feedback from the deal skill
 - NEVER fabricate data - if not found, mark as PENDING/gap
-- NEVER generate the final report when RED data points exist without running Step 5.5 (User Validation Gate) first
+- NEVER generate the final report when `low`-scoring metrics exist without running Step 5.5 (User Validation Gate) first
 - ALWAYS include period comparison when comparison data exists
 - Use hyphens with spaces instead of em-dashes (user preference)
 
