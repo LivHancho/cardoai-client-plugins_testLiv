@@ -35,7 +35,9 @@ Follow `knowledge/contracts/reading-stratification-tables.md` before narrating a
 
 ## Step 1: Confirm ABF MCP availability and environment
 
-Find the ABF server by looking for ABF-specific MCP tools — `list_transactions`, `list_transaction_analytics`, `get_stratification_analytics_data` — among the available tools. If none are present, say so and stop.
+Find the ABF server by looking for ABF-specific MCP tools — `list_transactions`, `list_transaction_analytics`, `get_stratification_analytics_data`, `get_filterable_columns`, `list_resources`, `read_resource` — among the available tools. If none are present, say so and stop.
+
+Call `list_resources` once per session, before the first `read_resource` call, to discover the actual resource URIs and templates this server exposes — including any `securitizations://` catalogs. Do not guess a resource URI from a tool description; confirm it exists in `list_resources`' output first.
 
 If multiple ABF MCP servers are connected (e.g., both UAT and Staging) and the user has not identified which environment to query, **ask before any tool call** — including read-only analytical queries. Once confirmed, use only that server's tools for the rest of the session — including `read_resource` for knowledge and reference resources; never mix one environment's catalog with another environment's data.
 
