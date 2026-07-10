@@ -20,6 +20,9 @@ Trigger on ANY of:
 - "What transactions do I have?" / "What asset classes?" / "What analytics are available?"
 - "What columns/fields can I filter on?" / exploring the data model
 
+## Non-negotiable: source url
+Every analytical answer that draws on a `get_stratification_analytics_data` retrieval ends with that retrieval's source `url`, verbatim, on the last line(s) — one per analytics used. No exceptions, no "when available." Full rule and UUID-in-prose carve-out: `knowledge/contracts/response-discipline.md`.
+
 Skip when:
 - The user is asking about the platform CODEBASE (architecture, file paths) — that's code reading, not MCP
 - The relevant skill was already loaded this conversation — don't reload
