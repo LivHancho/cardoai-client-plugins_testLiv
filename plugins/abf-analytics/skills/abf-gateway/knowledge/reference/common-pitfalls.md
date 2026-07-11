@@ -2,6 +2,14 @@
 
 Defensive patterns the gateway and report runner should follow proactively. Each pitfall lists the failure mode, the rule, and where the rule is enforced.
 
+## Ambiguous view/filter choice presented as fact
+
+**Failure:** More than one stratification view (or more than one saved filter set) could plausibly answer the analyst's plain-English question — e.g., "principal balance" could mean total UPB, a delinquency-bucket breakdown, or a filtered "Position" view excluding liquidated loans — and the agent silently picks one and delivers it as *the* answer instead of *an* answer.
+
+**Rule:** When `list_transaction_analytics` or `get_filterable_columns` surfaces more than one reasonable candidate for the analyst's term, name the candidates and ask which one before running `get_stratification_analytics_data` — do NOT guess and self-correct after delivery. This does not apply to mechanical parameters (`limit`, pagination) or to cases where exactly one analytics/filter combination matches the semantics — only to genuine multi-candidate ambiguity.
+
+**Enforcement:** `abf-gateway` Gateway Step 2 narrow fast path, before the `get_stratification_analytics_data` call.
+
 ## Narrating harness work
 
 **Failure:** The agent tells the analyst about internal steps such as skill reads, catalog loads, or MCP call sequencing. This makes responses feel like thinking traces instead of useful ABF answers.
