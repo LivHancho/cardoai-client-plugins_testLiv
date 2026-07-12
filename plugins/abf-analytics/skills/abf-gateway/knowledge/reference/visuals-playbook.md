@@ -26,7 +26,7 @@ Don't produce a visual for:
 
 ## Line chart marker defaults
 
-Line charts (single- or multi-series) default to **no visible point markers** along the line (`pointRadius: 0` or equivalent) — a clean unmarked line reads as a more polished, professional chart than one dotted with per-value markers.
+Line charts (single- or multi-series) default to **no visible point markers** along the line (`pointRadius: 0`) — a clean unmarked line reads as a more polished, professional chart than one dotted with per-value markers.
 This applies to every line chart produced by the gateway or the report runner, regardless of whether it's single-series (e.g., a balance trend) or multi-series (e.g., CGL by vintage).
 
 ## Trigger phrasing
