@@ -86,6 +86,14 @@ Defensive patterns the gateway and report runner should follow proactively. Each
 
 **Enforcement:** Reference resource exists; consult before reasoning numerically about percentages.
 
+## Silent filtering of rows, cohorts, or vintages
+
+**Failure:** The agent judges a segment (a vintage, a cohort, a state bucket, a small-sample group) to be "noise," "unrepresentative," or "not useful to show," and excludes it from a chart or table without asking — presenting only the filtered result, with the exclusion mentioned (if at all) as an afterthought rather than a decision point. This includes: dropping small-sample groups, capping outlier values, deduplicating rows, or re-bucketing categories differently than the source view returns them.
+
+**Rule:** Any inclusion/exclusion, capping, or re-aggregation decision that the user did not explicitly request must be surfaced *before* the visual or table is produced, not disclosed afterward as a footnote. Show the full result set (or describe what exists) and ask how the user wants it handled — include as-is, flag/mark distinctly, or exclude. Do not make this call unilaterally, even when the exclusion seems obviously reasonable (e.g., n<50, high volatility, clear reporting-gap artifact). The agent may recommend a treatment, but the decision belongs to the user.
+
+**Enforcement:** `visuals-playbook.md` "Before producing: check for filtering decisions" step; the gateway and report-runner must both follow it before any `show_widget`-equivalent call.
+
 ## Multi-environment assumption
 
 **Failure:** Defaulting an analytical query to a particular environment (UAT vs. Staging vs. Local) without asking, when multiple ABF MCP servers are connected and the user hasn't named one.
