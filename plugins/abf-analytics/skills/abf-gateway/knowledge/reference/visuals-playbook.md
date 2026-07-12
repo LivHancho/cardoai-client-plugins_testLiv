@@ -24,6 +24,14 @@ Don't produce a visual for:
 - Single-value status answers ("balance is 12.4M") — text is faster.
 - Responses where the user already has the number they asked for.
 
+## Line chart marker defaults
+
+Line charts (single- or multi-series) default to **no visible point markers** along the line (`pointRadius: 0` or equivalent) — a clean unmarked line reads as a more polished, professional chart than one dotted with per-value markers.
+
+**Exception — gap boundaries.** Wherever a series has a genuine reporting gap (no data for one or more consecutive x-axis positions, per the "Before producing: check for filtering decisions" section below), markers must appear at the two points bounding that gap, so the break is visibly a break and not a smooth interpolation or a rendering glitch. Do not extend this exception into interpolating through the gap — the line itself must still stop (`connectNulls: false` / `spanGaps: false`); the markers only make the stop legible.
+
+This applies to every line chart produced by the gateway or the report runner, regardless of whether it's single-series (e.g., a balance trend) or multi-series (e.g., CGL by vintage).
+
 ## Trigger phrasing
 
 When you offer or produce a visual, use clear language that tells the client what to render:
