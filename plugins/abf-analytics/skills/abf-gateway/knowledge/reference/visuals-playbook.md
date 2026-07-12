@@ -42,6 +42,25 @@ If the user enabled visuals at session start but the current response is borderl
 
 If the user confirmed visuals are on and the analysis is visualization-friendly (per the table above), skip the ask and produce it directly.
 
+## Before producing: check for filtering decisions
+
+Before emitting any visual (or the raw data block that feeds one), check whether producing it required any of the following, none of which the user explicitly asked for:
+- Dropping a row, cohort, vintage, or category (e.g., a small-sample group, a "-"/blank bucket, a partial-period row)
+- Capping, winsorizing, or otherwise adjusting an outlier value
+- Re-aggregating or re-bucketing data differently than the source analytics returns it (e.g., summing a vintage-level view to approximate a pool-level total)
+- Interpolating or bridging across a gap in the reported series (e.g., connecting two non-adjacent months-on-book with a smooth line)
+
+If any apply, **stop before rendering** and ask the user how they want it handled, rather than picking a treatment and disclosing it afterward. A short framing works:
+
+> "The Sep-2024 vintage has only 45 loans and swings heavily — include it, flag it separately, or leave it out?"
+> "There's no purpose-built pool-level view for this — I can sum the vintage-level view across cohorts to approximate one. Want me to do that, or look for a different source first?"
+
+Only skip the ask when the user's own request already specifies the treatment (e.g., "exclude anything under 100 loans" or "just show me the total").
+
+If the visual must show a genuine reporting gap (no data for some x-axis span), render it as a true break in the series (e.g., `connectNulls: false` / `spanGaps: false`), never as an interpolated line — a smooth line implies data that doesn't exist.
+
+This check happens *before* step 1 of "How to structure the visual content" below — it gates whether that section even runs, or whether the response should instead be a clarifying question.
+
 ## How to structure the visual content
 
 For each visual, emit:
