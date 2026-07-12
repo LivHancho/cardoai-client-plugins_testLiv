@@ -71,6 +71,15 @@ If no transaction is active and no asset class is named, resolve it once a trans
 
 Deliver visuals opportunistically by default — text and markdown tables for simple answers, and a chart, heatmap, or interactive table when the data is clearly visualization-friendly (`knowledge/reference/visuals-playbook.md`). If the analyst says "turn visuals off", "no charts", or "always chart this", honor it for the rest of the session.
 
+**Mandatory pre-render gate — run this before calling any chart/table rendering tool, every time:**
+
+1. List, explicitly, every row/cohort/vintage/category dropped, capped, deduplicated, re-bucketed, or re-aggregated versus what the retrieved analytics returned raw.
+2. If that list is non-empty and the user did not explicitly request that exact treatment in this conversation, **stop. Do not render.** Ask the user how to handle each item instead (include as-is / flag distinctly / exclude). This question IS the entire response — do not ask and then render anyway in the same turn.
+3. If the list is empty, or the user already specified the treatment, proceed to render.
+4. Any gap in a reported time series (no data for some x-axis span) must render as a true break (`connectNulls: false` / `spanGaps: false` or equivalent) — never an interpolated line across missing periods.
+
+This gate is not satisfied by mentioning the filtering choice in prose after the chart is shown. See `knowledge/reference/common-pitfalls.md` § "Silent filtering of rows, cohorts, or vintages" for failure examples.
+
 ## Step 4: Follow chain references
 
 Loaded skills hand off to others ("use the `abf-Y` skill"). Invoke each named skill once via the Skill tool. Never reload a skill already used this conversation.
