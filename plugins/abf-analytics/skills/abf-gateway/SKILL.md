@@ -71,6 +71,8 @@ If no transaction is active and no asset class is named, resolve it once a trans
 
 Deliver visuals opportunistically by default — text and markdown tables for simple answers, and a chart, heatmap, or interactive table when the data is clearly visualization-friendly (`knowledge/reference/visuals-playbook.md`). If the analyst says "turn visuals off", "no charts", or "always chart this", honor it for the rest of the session.
 
+Before rendering any artifact — HTML dashboard, exported Word/PDF/Excel document, or standalone chart image — load `knowledge/reference/artifact-style.md` and apply its colors, typography, and page layout. `visuals-playbook.md` picks the chart type; `artifact-style.md` governs how that chosen chart, table, or page is actually rendered. Do not render first and reconcile style afterward — load the style reference before the first render call of the session, then reuse it for the rest of the session. 
+
 **Mandatory pre-render gate — run this before calling any chart/table rendering tool, every time:**
 
 1. List, explicitly, every row/cohort/vintage/category dropped, capped, deduplicated, re-bucketed, or re-aggregated versus what the retrieved analytics returned raw.
@@ -110,7 +112,7 @@ On-demand references; the gateway does not preload them.
 - `knowledge/reference/common-pitfalls.md` — defensive patterns.
 - `knowledge/reference/derived-metrics.md` — SMM/CPR/MoM/concentration-drift formulas.
 - `knowledge/reference/visuals-playbook.md` — chart-type defaults per analysis pattern.
-- `knowledge/reference/artifact-style.md` — colors, typography, and page layout for any rendered artifact (HTML dashboard, exported document, image). Consult whenever producing one.
+- `knowledge/reference/artifact-style.md` — colors, typography, and page layout for any rendered artifact (HTML dashboard, exported document, image). **Not optional** — see Step 3, which requires loading this before any artifact render.
 
 ## Never
 
